@@ -12,6 +12,7 @@ from typing import Set, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
+
 from NEGradient_GenePriority.preprocessing.utils import from_indices
 
 

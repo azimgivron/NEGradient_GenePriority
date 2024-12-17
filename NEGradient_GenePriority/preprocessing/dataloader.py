@@ -14,6 +14,8 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
+from tqdm import tqdm
+
 from NEGradient_GenePriority.preprocessing.preprocessing import (
     combine_matrices,
     combine_splits,
@@ -25,7 +27,6 @@ from NEGradient_GenePriority.preprocessing.preprocessing import (
     filter_by_number_of_association,
     sample_zeros,
 )
-from tqdm import tqdm
 
 
 class DataLoader:
@@ -245,10 +246,9 @@ class DataLoader:
         Get splits for the OMIM1 dataset.
 
         Returns:
-            Tuple[List[sp.csr_matrix], List[sp.csr_matrix], List[np.ndarray]]:
+            Tuple[List[sp.csr_matrix], List[sp.csr_matrix]]:
                 - List of training matrices (sp.csr_matrix).
                 - List of test matrices containing only positive class labels (sp.csr_matrix).
-                - List of masks for testing data (np.ndarray).
         """
         ys_train = [
             fold.training_indices.get_data(omim1)
@@ -258,10 +258,7 @@ class DataLoader:
             fold.testing_indices.get_1s(omim1)
             for fold, omim1 in zip(self.omim1_splits_indices, self.omim1)
         ]
-        masks_1s = [
-            np.vstack((y_test_1s.row, y_test_1s.col)) for y_test_1s in ys_test_1s
-        ]
-        return ys_train, ys_test_1s, masks_1s
+        return ys_train, ys_test_1s
 
     @property
     def folds(

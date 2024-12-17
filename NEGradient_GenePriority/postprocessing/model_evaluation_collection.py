@@ -9,9 +9,10 @@ This class facilitates comparison and analysis of model performance in a structu
 and efficient manner.
 
 """
-from typing import Dict, Iterator, List
+from typing import Dict, Iterator, List, Tuple
 
 import numpy as np
+
 from NEGradient_GenePriority.evaluation.evaluation import Evaluation
 
 
@@ -67,12 +68,12 @@ class ModelEvaluationCollection:
         """
         return list(self.model_results.values())
 
-    def items(self) -> Iterator[tuple]:
+    def items(self) -> Iterator[Tuple[str, Evaluation]]:
         """
         Provides an iterator over the model names and their corresponding Evaluation objects.
 
         Returns:
-            Iterator[tuple]: An iterator of (model_name, Evaluation) pairs.
+            Iterator[Tuple[str, Evaluation]]: An iterator of (model_name, Evaluation) pairs.
         """
         return self.model_results.items()
 
@@ -85,32 +86,31 @@ class ModelEvaluationCollection:
         """
         return iter(self.evaluations)
 
-    def compute_auc_losses(self) -> List[tuple]:
+    def compute_auc_losses(self) -> np.ndarray:
         """
-        Computes the average AUC loss (1 - AUC) for each model.
+        Calculates the mean and standard deviation of the
+        AUC loss (1 - AUC) for each model across all diseases.
 
         Returns:
-            List[tuple]: A list of tuples, where each tuple contains the mean and
-            standard deviation of AUC loss for a model.
+            np.ndarray: A 2D array containing the average and standard deviation
+                of the AUC loss for each model. Shape: (models, 2).
         """
-        auc_losses = []
-        for eval_res in self.evaluations:
-            auc_losses.append(eval_res.compute_avg_auc_loss())
-        return auc_losses
+        auc_loss = np.array(
+            [eval_res.compute_avg_auc_loss() for eval_res in self.evaluations]
+        )
+        avg_auc_loss = np.hstack((np.mean(auc_loss, axis=1), np.std(auc_loss, axis=1)))
+        return avg_auc_loss.reshape((len(self.evaluations), 2))
 
     def compute_bedroc_scores(self) -> np.ndarray:
         """
-        Computes BEDROC scores for each model and rearranges the results for analysis.
+        Calculates the BEDROC scores for several alpah values per disease and
+        for each model.
 
         Returns:
-            np.ndarray: A NumPy array of shape (alphas, folds, latent), where:
-                - alphas: BEDROC scores for different alpha values.
-                - folds: BEDROC scores for different cross-validation folds.
-                - latent: BEDROC scores for different latent dimensions.
+            np.ndarray: A 3D array containing the BEDROC scores for each disease,
+            across different alpha values, for each model. Shape: (alphas, diseases, models).
         """
-        bedroc_scores = np.array(
+        bedroc = np.array(
             [eval_res.compute_bedroc_scores() for eval_res in self.evaluations]
-        )  # Shape: (latent, folds, alphas)
-        return np.transpose(
-            bedroc_scores, axes=(2, 1, 0)
-        )  # Shape: (alphas, folds, latent)
+        )  # shape = (models, diseases, alphas)
+        return bedroc.T

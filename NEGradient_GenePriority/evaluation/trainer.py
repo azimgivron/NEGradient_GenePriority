@@ -18,13 +18,14 @@ from typing import Dict, List, Literal, Tuple
 
 import numpy as np
 import smurff
+from tqdm import tqdm
+
 from NEGradient_GenePriority.evaluation.evaluation import Evaluation
 from NEGradient_GenePriority.evaluation.results import Results
 from NEGradient_GenePriority.preprocessing.dataloader import DataLoader
 from NEGradient_GenePriority.preprocessing.side_information_loader import (
     SideInformationLoader,
 )
-from tqdm import tqdm
 
 
 class Trainer:
@@ -241,10 +242,7 @@ class Trainer:
             )
             session.run()
             y_pred = self.predict(session)
-            mask_1s = y_test_1s.toarray() == 1
-            results.append(
-                Results(y_true=self.dataloader.omim2, y_pred=y_pred, mask_1s=mask_1s)
-            )
+            results.append(Results(y_true=self.dataloader.omim2.tocsr(), y_pred=y_pred))
         return Evaluation(results)
 
     def train_test_splits(
@@ -288,9 +286,8 @@ class Trainer:
             )
             session.run()
             y_pred = self.predict(session)
-            mask_1s = y_test_1s.toarray() == 1
             results.append(
-                Results(y_true=self.dataloader.omim1[i], y_pred=y_pred, mask_1s=mask_1s)
+                Results(y_true=self.dataloader.omim1[i].tocsr(), y_pred=y_pred)
             )
         return Evaluation(results)
 

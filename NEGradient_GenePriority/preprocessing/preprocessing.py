@@ -14,8 +14,9 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
-from NEGradient_GenePriority.preprocessing.train_test_indices import TrainTestIndices
 from sklearn.model_selection import KFold, train_test_split
+
+from NEGradient_GenePriority.preprocessing.train_test_indices import TrainTestIndices
 
 
 def combine_splits(

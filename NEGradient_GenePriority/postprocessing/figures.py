@@ -13,6 +13,7 @@ from typing import List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+
 from NEGradient_GenePriority.evaluation.evaluation import Evaluation
 from NEGradient_GenePriority.postprocessing.model_evaluation_collection import (
     ModelEvaluationCollection,
@@ -39,8 +40,11 @@ def plot_roc_curves(
     colors = plt.get_cmap(cmap).colors
     fig = plt.figure(figsize=figsize)
     for i, (name, evaluation) in enumerate(evaluation_collection.items()):
+        fpr_tpr_avg = evaluation.compute_roc_curve().mean(axis=0)
+        fpr, tpr = fpr_tpr_avg
         plt.plot(
-            *evaluation.compute_roc_curve(),
+            fpr,
+            tpr,
             linewidth=2,
             c=colors[i],
             label=name,
@@ -50,7 +54,7 @@ def plot_roc_curves(
     plt.ylabel("Average TPR")
     plt.legend()
     plt.grid(alpha=0.3)
-    fig.suptitle("Average ROC Curve", fontsize=14)
+    fig.suptitle("Average ROC Curve across all Diseases.", fontsize=14)
     plt.tight_layout()
     fig.subplots_adjust(hspace=0.3, wspace=0.4, top=0.9)
     plt.savefig(output_file, dpi=300)
@@ -68,9 +72,9 @@ def plot_bedroc_boxplots(
     Plots boxplots of BEDROC scores for multiple alpha values and latent dimensions.
 
     Args:
-        bedroc (np.ndarray): BEDROC scores array of shape (alphas, folds, latent).
-            Each entry represents the BEDROC score for a specific alpha value, fold,
-            and latent dimension.
+        bedroc (np.ndarray): BEDROC scores array of shape (alphas, diseases, models).
+            Each entry represents the BEDROC score for a specific alpha value, disease,
+            and model.
         model_names (List[str]): Names of the models being compared.
         output_file (str): File path where the BEDROC boxplot figure will be saved.
         cmap (str, optional): Matplotlib colormap for the boxplot colors. Defaults to "Set2".
